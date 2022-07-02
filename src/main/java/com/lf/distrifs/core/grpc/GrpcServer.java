@@ -12,6 +12,7 @@ import io.grpc.util.MutableHandlerRegistry;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -30,6 +31,7 @@ public class GrpcServer {
 
 
 
+    @PostConstruct
     public void start() throws IOException {
         final MutableHandlerRegistry handlerRegistry = new MutableHandlerRegistry();
 

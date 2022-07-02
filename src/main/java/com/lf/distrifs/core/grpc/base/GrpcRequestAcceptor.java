@@ -6,8 +6,10 @@ import com.lf.distrifs.core.grpc.connect.ConnectionManager;
 import com.lf.distrifs.core.grpc.connect.GrpcConnection;
 import com.lf.distrifs.core.grpc.request.Request;
 import com.lf.distrifs.core.grpc.request.RequestMeta;
+import com.lf.distrifs.core.grpc.request.ServerCheckRequest;
 import com.lf.distrifs.core.grpc.response.ErrorResponse;
 import com.lf.distrifs.core.grpc.response.Response;
+import com.lf.distrifs.core.grpc.response.ServerCheckResponse;
 import com.lf.distrifs.util.GrpcUtils;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Resource
-    private RequestHandlerRegistry registry;
+    private RequestHandlerRegistry requestHandlerRegistry;
 
     @Resource
     private ConnectionManager connectionManager;
@@ -32,7 +34,16 @@ public class GrpcRequestAcceptor extends RequestGrpc.RequestImplBase {
     @Override
     public void request(GrpcProto.Payload request, StreamObserver<GrpcProto.Payload> responseObserver) {
         String type = request.getMetadata().getType();
-        BaseRequestHandler requestHandler = registry.getHandler(type);
+
+        if (ServerCheckRequest.class.getSimpleName().equalsIgnoreCase(type)) {
+            // server check request, just return connection id for client
+            GrpcProto.Payload payload = GrpcUtils.convert(new ServerCheckResponse(CONTEXT_KEY_CONN_ID.get()));
+            responseObserver.onNext(payload);
+            responseObserver.onCompleted();
+            return;
+        }
+
+        BaseRequestHandler requestHandler = requestHandlerRegistry.getHandler(type);
 
         if (requestHandler == null) {
             GrpcProto.Payload payloadResponse = GrpcUtils.convert(ErrorResponse.build(String.format("No matched handler for type [%s]", type)));

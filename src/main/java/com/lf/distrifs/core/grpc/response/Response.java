@@ -1,9 +1,11 @@
 package com.lf.distrifs.core.grpc.response;
 
 import com.lf.distrifs.core.grpc.base.PayLoad;
+import lombok.Data;
 
 import java.util.StringJoiner;
 
+@Data
 public abstract class Response implements PayLoad {
 
     int resultCode = 200;

@@ -112,6 +112,7 @@ public class GrpcUtils {
 
 
     public static Object parse(GrpcProto.Payload payload) {
+        if(payload == null) return null;
         Class classType = PayloadRegistry.getClassByType(payload.getMetadata().getType());
         if (classType != null) {
             Object obj = toObj(payload.getBody().getValue().toString(StandardCharsets.UTF_8), classType);

@@ -1,14 +1,18 @@
 package com.lf.distrifs.core.grpc.request;
 
 import com.lf.distrifs.core.grpc.base.PayLoad;
+import lombok.Data;
 
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Data
 public abstract class Request implements PayLoad {
 
     private final Map<String, String> headers = new ConcurrentHashMap<>();
+
+    private String requestId;
 
 
     public void putHeader(String name, String val) {
