@@ -32,7 +32,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Slf4j
 @Data
@@ -61,15 +60,15 @@ public class GrpcClient {
     private LinkedBlockingQueue<ConnectionType> eventBlockingQueue = new LinkedBlockingQueue<>();
 
     static {
-       PayloadRegistry.scan(new PackagePathProvider() {
-           @Override
-           public Set<String> getPackagePaths() {
-               return ImmutableSet.of(
-                       "com.lf.distrifs.core.grpc.request",
-                       "com.lf.distrifs.core.grpc.response"
-               );
-           }
-       });
+        PayloadRegistry.scan(new PackagePathProvider() {
+            @Override
+            public Set<String> getPackagePaths() {
+                return ImmutableSet.of(
+                        "com.lf.distrifs.core.grpc.request",
+                        "com.lf.distrifs.core.grpc.response"
+                );
+            }
+        });
     }
 
 
@@ -104,6 +103,17 @@ public class GrpcClient {
             this.clientStatus.set(RpcClientStatus.RUNNING);
         } else {
             //todo async switch server
+        }
+    }
+
+    public void loop() {
+        //just for test
+        while (true) {
+            healthCheck();
+            try {
+                Thread.sleep(2000L);
+            } catch (Exception e) {
+            }
         }
     }
 
@@ -157,7 +167,7 @@ public class GrpcClient {
         return new IpAndPort(split[0], Integer.parseInt(split[1]));
     }
 
-    private  void initEventProcessor() {
+    private void initEventProcessor() {
         if (clientEventExecutor == null) {
             clientEventExecutor = new ThreadPoolExecutor(2, 2, 0, TimeUnit.MILLISECONDS,
                     new ArrayBlockingQueue<>(100), r -> {
@@ -314,7 +324,7 @@ public class GrpcClient {
                             try {
                                 grpcConnection.sendResponse(errResponse);
                             } catch (Exception ex) {
-                                log.error("[{}]Error to send ack response, ackId->{}",grpcConnection.getConnectionId(),
+                                log.error("[{}]Error to send ack response, ackId->{}", grpcConnection.getConnectionId(),
                                         errResponse.getRequestId());
                             }
                         }
@@ -401,7 +411,12 @@ public class GrpcClient {
         }
         try {
             Response response = this.grpcConnection.request(healthCheckRequest, 3000L);
-            return response != null && response.isSuccess();
+            if (response != null && response.isSuccess()) {
+                log.info("[{}]Receive alive detect response from [{}], connectionId=  {}", name, grpcConnection.getIpAndPort(), grpcConnection.getConnectionId());
+                return true;
+            } else {
+                log.warn("[{}]Receive error detect response from [{}], connectionId = {}", name, grpcConnection.getIpAndPort(), grpcConnection.getConnectionId());
+            }
         } catch (Exception e) {
 
         }

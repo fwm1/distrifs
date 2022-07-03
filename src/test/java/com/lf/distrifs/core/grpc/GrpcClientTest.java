@@ -1,7 +1,6 @@
 package com.lf.distrifs.core.grpc;
 
 import com.lf.distrifs.core.grpc.common.ServerListManager;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -18,6 +17,7 @@ class GrpcClientTest {
     public void testClient() {
         GrpcClient client = new GrpcClient("mock-client", new ServerListManager());
         client.start();
+        client.loop();
 
     }
 
