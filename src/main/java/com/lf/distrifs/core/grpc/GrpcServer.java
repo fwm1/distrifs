@@ -1,9 +1,12 @@
 package com.lf.distrifs.core.grpc;
 
+import com.google.common.base.Strings;
+import com.lf.distrifs.core.grpc.auto.BiRequestStreamGrpc;
 import com.lf.distrifs.core.grpc.auto.GrpcProto;
+import com.lf.distrifs.core.grpc.auto.RequestGrpc;
 import com.lf.distrifs.core.grpc.base.GrpcBiStreamRequestAcceptor;
 import com.lf.distrifs.core.grpc.base.GrpcRequestAcceptor;
-import com.lf.distrifs.core.grpc.base.PayloadRegistry;
+import com.lf.distrifs.core.grpc.connect.ConnectionManager;
 import io.grpc.*;
 import io.grpc.netty.shaded.io.netty.channel.Channel;
 import io.grpc.protobuf.ProtoUtils;
@@ -29,6 +32,8 @@ public class GrpcServer {
     @Resource
     private GrpcBiStreamRequestAcceptor grpcBiStreamRequestAcceptor;
 
+    @Resource
+    private ConnectionManager connectionManager;
 
 
     @PostConstruct
@@ -45,10 +50,10 @@ public class GrpcServer {
                         .withValue(CONTEXT_KEY_CONN_REMOTE_PORT, call.getAttributes().get(TRANS_KEY_REMOTE_PORT))
                         .withValue(CONTEXT_KEY_CONN_LOCAL_PORT, call.getAttributes().get(TRANS_KEY_LOCAL_PORT));
 
-                if ("BiRequestStream".equals(call.getMethodDescriptor().getServiceName())) {
-                    Channel internalChannel = getInternalChannel(call);
-                    ctx = ctx.withValue(CONTEXT_KEY_CHANNEL, internalChannel);
-                }
+//                if (BiRequestStreamGrpc.SERVICE_NAME.equals(call.getMethodDescriptor().getServiceName())) {
+//                    Channel internalChannel = getInternalChannel(call);
+//                    ctx = ctx.withValue(CONTEXT_KEY_CHANNEL, internalChannel);
+//                }
                 return Contexts.interceptCall(ctx, call, headers, next);
             }
         };
@@ -79,8 +84,16 @@ public class GrpcServer {
 
                     @Override
                     public void transportTerminated(Attributes transportAttrs) {
-                        String connId = transportAttrs.get(TRANS_KEY_CONN_ID);
-                        // todo unregister connection by connectionId
+                        String connId = null;
+                        try {
+                            connId = transportAttrs.get(TRANS_KEY_CONN_ID);
+                        } catch (Exception e) {
+
+                        }
+                        if (!Strings.isNullOrEmpty(connId)) {
+                            connectionManager.unregister(connId);
+                        }
+
                     }
                 })
                 .build();
@@ -93,14 +106,14 @@ public class GrpcServer {
         // unary common call register.
         final MethodDescriptor<GrpcProto.Payload, GrpcProto.Payload> unaryPayloadMethod = MethodDescriptor.<GrpcProto.Payload, GrpcProto.Payload>newBuilder()
                 .setType(MethodDescriptor.MethodType.UNARY)
-                .setFullMethodName(MethodDescriptor.generateFullMethodName("Request", "request"))
+                .setFullMethodName(MethodDescriptor.generateFullMethodName(RequestGrpc.SERVICE_NAME, "request"))
                 .setRequestMarshaller(ProtoUtils.marshaller(GrpcProto.Payload.getDefaultInstance()))
                 .setResponseMarshaller(ProtoUtils.marshaller(GrpcProto.Payload.getDefaultInstance())).build();
 
         final ServerCallHandler<GrpcProto.Payload, GrpcProto.Payload> payloadHandler = ServerCalls
                 .asyncUnaryCall((request, responseObserver) -> grpcRequestAcceptor.request(request, responseObserver));
 
-        final ServerServiceDefinition serviceDefOfUnaryPayload = ServerServiceDefinition.builder("Request")
+        final ServerServiceDefinition serviceDefOfUnaryPayload = ServerServiceDefinition.builder(RequestGrpc.SERVICE_NAME)
                 .addMethod(unaryPayloadMethod, payloadHandler).build();
         handlerRegistry.addService(ServerInterceptors.intercept(serviceDefOfUnaryPayload, serverInterceptor));
 
@@ -110,12 +123,12 @@ public class GrpcServer {
 
         final MethodDescriptor<GrpcProto.Payload, GrpcProto.Payload> biStreamMethod = MethodDescriptor.<GrpcProto.Payload, GrpcProto.Payload>newBuilder()
                 .setType(MethodDescriptor.MethodType.BIDI_STREAMING).setFullMethodName(MethodDescriptor
-                        .generateFullMethodName("BiRequestStream", "requestBiStream"))
+                        .generateFullMethodName(BiRequestStreamGrpc.SERVICE_NAME, "requestBiStream"))
                 .setRequestMarshaller(ProtoUtils.marshaller(GrpcProto.Payload.newBuilder().build()))
                 .setResponseMarshaller(ProtoUtils.marshaller(GrpcProto.Payload.getDefaultInstance())).build();
 
         final ServerServiceDefinition serviceDefOfBiStream = ServerServiceDefinition
-                .builder("BiRequestStream").addMethod(biStreamMethod, biStreamHandler).build();
+                .builder(BiRequestStreamGrpc.SERVICE_NAME).addMethod(biStreamMethod, biStreamHandler).build();
         handlerRegistry.addService(ServerInterceptors.intercept(serviceDefOfBiStream, serverInterceptor));
 
     }

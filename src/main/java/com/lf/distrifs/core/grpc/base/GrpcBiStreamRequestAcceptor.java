@@ -72,9 +72,7 @@ public class GrpcBiStreamRequestAcceptor extends BiRequestStreamGrpc.BiRequestSt
                             //ignore
                         }
                     }
-                }
-
-                if (parseObj instanceof Response) {
+                } else if (parseObj instanceof Response) {
                     Response response = (Response) parseObj;
                     // ack notify
                     AsyncRpcAckCenter.ackNotify(connectionId, response);

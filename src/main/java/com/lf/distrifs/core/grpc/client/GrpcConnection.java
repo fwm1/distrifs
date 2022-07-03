@@ -3,6 +3,7 @@ package com.lf.distrifs.core.grpc.client;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.lf.distrifs.core.IpAndPort;
 import com.lf.distrifs.core.grpc.GrpcClient;
 import com.lf.distrifs.core.grpc.auto.GrpcProto;
 import com.lf.distrifs.core.grpc.auto.RequestGrpc;
@@ -28,7 +29,7 @@ public class GrpcConnection implements Requester {
 
     String connectionId;
 
-    GrpcClient.IpAndPort ipAndPort;
+    IpAndPort ipAndPort;
 
     ManagedChannel channel;
 
@@ -38,7 +39,7 @@ public class GrpcConnection implements Requester {
 
     StreamObserver<GrpcProto.Payload> payloadStreamObserver;
 
-    public GrpcConnection(GrpcClient.IpAndPort ipAndPort, Executor executor) {
+    public GrpcConnection(IpAndPort ipAndPort, Executor executor) {
         this.ipAndPort = ipAndPort;
         this.executor = executor;
     }

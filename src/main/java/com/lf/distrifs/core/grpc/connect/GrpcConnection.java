@@ -11,28 +11,31 @@ import com.lf.distrifs.util.GrpcUtils;
 import io.grpc.netty.shaded.io.netty.channel.Channel;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
+import lombok.Data;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Data
 public class GrpcConnection implements Requester {
 
     private final ConnectionMeta meta;
 
     private StreamObserver streamObserver;
 
-    private Channel channel;
+//    private Channel channel;
 
     private static final AtomicLong ID = new AtomicLong(0);
 
     public GrpcConnection(ConnectionMeta meta, StreamObserver streamObserver, Channel channel) {
         this.meta = meta;
         this.streamObserver = streamObserver;
-        this.channel = channel;
+//        this.channel = channel;
     }
 
     public boolean isConnected() {
-        return channel != null && channel.isOpen() && channel.isActive();
+        return true;
+//        return channel != null && channel.isOpen() && channel.isActive();
     }
 
     public Map<String, String> getLabels() {
@@ -75,7 +78,7 @@ public class GrpcConnection implements Requester {
                 serverCallStreamObserver.onCompleted();
             }
         }
-        channel.close();
+//        channel.close();
     }
 
     private DefaultRequestFuture sendReqInner(Request request, RequestCallback callback) throws Exception {

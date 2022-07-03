@@ -1,5 +1,6 @@
 package com.lf.distrifs.core.grpc.connect;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -7,10 +8,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class ConnectionManager {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     Map<String, GrpcConnection> connections = new ConcurrentHashMap<>();
 
@@ -32,10 +32,18 @@ public class ConnectionManager {
                 return true;
             }
             connections.put(connectionId, connection);
-            LOGGER.info("new connection registered successfully, connectionId = {},connection={} ", connectionId, connection);
+            log.info("new connection registered successfully, connectionId = {},connection={} ", connectionId, connection);
             return true;
         }
         return false;
+    }
+
+    public synchronized void unregister(String connectionId) {
+        GrpcConnection remove = this.connections.remove(connectionId);
+        if (remove != null) {
+            remove.close();
+            log.info("[{}]Connection unregistered successfully", connectionId);
+        }
     }
 
     public boolean isValid(String connectionId) {
