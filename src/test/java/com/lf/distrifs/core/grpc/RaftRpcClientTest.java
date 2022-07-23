@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 
 @SpringBootTest
-class GrpcClientTest {
+class RaftRpcClientTest {
 
     @Resource
     private GrpcServer grpcServer;

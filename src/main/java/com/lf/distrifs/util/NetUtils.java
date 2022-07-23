@@ -1,5 +1,7 @@
 package com.lf.distrifs.util;
 
+import com.lf.distrifs.common.Constants;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.Enumeration;
@@ -8,13 +10,15 @@ public class NetUtils {
 
     private static final String LEGAL_LOCAL_IP_PROPERTY = "java.net.preferIPv6Addresses";
 
-    private static String localIp = getAddress();
+    public static final String LOCAL_IP = getIp();
 
-    public static String localIP() {
-        return localIp;
+    public static final int LOCAL_PORT = Constants.DETAIL_PORT;
+
+    public static String localAddress() {
+        return LOCAL_IP + ":" + LOCAL_PORT;
     }
 
-    private static String getAddress() {
+    private static String getIp() {
         InetAddress inetAddress = findFirstNonLoopbackAddress();
         if (inetAddress == null) {
             return "127.0.0.1";

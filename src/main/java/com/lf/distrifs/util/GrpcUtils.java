@@ -67,7 +67,7 @@ public class GrpcUtils {
         if (meta != null) {
             metaBuilder.putAllHeaders(request.getHeaders()).setType(request.getClass().getSimpleName());
         }
-        metaBuilder.setClientIp(NetUtils.localIP());
+        metaBuilder.setClientIp(NetUtils.LOCAL_IP);
         payloadBuilder.setMetadata(metaBuilder.build());
 
         // request body
@@ -88,7 +88,7 @@ public class GrpcUtils {
     public static GrpcProto.Payload convert(Request request) {
 
         GrpcProto.Metadata newMeta = GrpcProto.Metadata.newBuilder().setType(request.getClass().getSimpleName())
-                .setClientIp(NetUtils.localIP()).putAllHeaders(request.getHeaders()).build();
+                .setClientIp(NetUtils.LOCAL_IP).putAllHeaders(request.getHeaders()).build();
         request.clearHeaders();
         String jsonString = toJson(request);
 

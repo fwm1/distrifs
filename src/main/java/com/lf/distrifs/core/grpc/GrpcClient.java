@@ -65,7 +65,9 @@ public class GrpcClient {
             public Set<String> getPackagePaths() {
                 return ImmutableSet.of(
                         "com.lf.distrifs.core.grpc.request",
-                        "com.lf.distrifs.core.grpc.response"
+                        "com.lf.distrifs.core.grpc.response",
+                        "com.lf.distrifs.core.raft.request",
+                        "com.lf.distrifs.core.raft.response"
                 );
             }
         });
