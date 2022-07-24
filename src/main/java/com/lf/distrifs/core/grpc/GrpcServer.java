@@ -1,12 +1,14 @@
 package com.lf.distrifs.core.grpc;
 
 import com.google.common.base.Strings;
+import com.lf.distrifs.common.Constants;
 import com.lf.distrifs.core.grpc.auto.BiRequestStreamGrpc;
 import com.lf.distrifs.core.grpc.auto.GrpcProto;
 import com.lf.distrifs.core.grpc.auto.RequestGrpc;
 import com.lf.distrifs.core.grpc.base.GrpcBiStreamRequestAcceptor;
 import com.lf.distrifs.core.grpc.base.GrpcRequestAcceptor;
 import com.lf.distrifs.core.grpc.connect.ConnectionManager;
+import com.lf.distrifs.util.NetUtils;
 import io.grpc.*;
 import io.grpc.netty.shaded.io.netty.channel.Channel;
 import io.grpc.protobuf.ProtoUtils;
@@ -61,7 +63,7 @@ public class GrpcServer {
         addServices(handlerRegistry, serverInterceptor);
 
 
-        server = ServerBuilder.forPort(8089)
+        server = ServerBuilder.forPort(NetUtils.LOCAL_PORT)
                 .fallbackHandlerRegistry(handlerRegistry)
                 .compressorRegistry(CompressorRegistry.getDefaultInstance())
                 .decompressorRegistry(DecompressorRegistry.emptyInstance())

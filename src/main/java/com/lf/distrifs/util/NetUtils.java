@@ -1,5 +1,6 @@
 package com.lf.distrifs.util;
 
+import com.google.common.base.Strings;
 import com.lf.distrifs.common.Constants;
 
 import java.io.IOException;
@@ -12,10 +13,18 @@ public class NetUtils {
 
     public static final String LOCAL_IP = getIp();
 
-    public static final int LOCAL_PORT = Constants.DETAIL_PORT;
+    public static final int LOCAL_PORT = localPort();
 
     public static String localAddress() {
         return LOCAL_IP + ":" + LOCAL_PORT;
+    }
+
+    public static int localPort() {
+        String localPort = System.getProperty("distrifs.local.port");
+        if (Strings.isNullOrEmpty(localPort)) {
+            return Constants.DETAIL_PORT;
+        }
+        return Integer.parseInt(localPort);
     }
 
     private static String getIp() {

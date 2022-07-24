@@ -20,6 +20,14 @@ public class RaftNode {
 
     NodeStatus status = NodeStatus.FOLLOWER;
 
+    public RaftNode() {
+    }
+
+    public RaftNode(String ip, int port) {
+        this.ip = ip;
+        this.port = port;
+    }
+
     public void resetLeaderTimeout() {
         leaderTimeout = Constants.LEADER_TIMEOUT_MS + CommonUtils.nextRandomLong(0, Constants.RANDOM_MS);
     }

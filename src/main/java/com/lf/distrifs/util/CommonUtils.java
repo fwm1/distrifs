@@ -23,4 +23,12 @@ public class CommonUtils {
         checkArgument(!Strings.isNullOrEmpty(ip) && port > 0, String.format("Illegal ip or port, ip=%s, port=%s", ip, port));
         return ip + ":" + port;
     }
+
+    public static void threadSleep(long mills) {
+        try {
+            Thread.sleep(mills);
+        } catch (InterruptedException e) {
+
+        }
+    }
 }

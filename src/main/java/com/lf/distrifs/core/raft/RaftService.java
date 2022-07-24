@@ -1,10 +1,13 @@
 package com.lf.distrifs.core.raft;
 
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.FutureCallback;
 import com.lf.distrifs.core.grpc.GrpcClient;
+import com.lf.distrifs.core.raft.response.RaftVoteResponse;
 import com.lf.distrifs.util.CommonUtils;
 import com.lf.distrifs.util.NetUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -21,11 +24,14 @@ public class RaftService {
     @Resource
     private RaftNodeManager raftNodeManager;
 
+    @Resource
+    private RaftClientService raftClientService;
+
     private RaftRpcClient rpcClient = new RaftRpcClient();
 
     @PostConstruct
     public void init() {
-
+        testVote();
     }
 
     public void testVote() {
@@ -34,7 +40,17 @@ public class RaftService {
         candidate.ip = NetUtils.LOCAL_IP;
         candidate.port = NetUtils.LOCAL_PORT;
         candidate.term = new AtomicLong(1L);
-        rpcClient.sendVoteRequest(candidate);
+        raftClientService.sendVoteRequest(candidate, new FutureCallback<RaftNode>() {
+            @Override
+            public void onSuccess(RaftNode result) {
+                log.info("[Raft] Received raft vote response in callback, voteFor={}", result);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[Raft] Raft vote request failed", t);
+            }
+        });
     }
 
     public synchronized RaftNode receiveVote(RaftNode candidate) {

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.lf.distrifs.common.packagescan.PackagePathProvider;
-import com.lf.distrifs.core.IpAndPort;
+import com.lf.distrifs.common.IpAndPort;
 import com.lf.distrifs.core.grpc.auto.BiRequestStreamGrpc;
 import com.lf.distrifs.core.grpc.auto.GrpcProto;
 import com.lf.distrifs.core.grpc.auto.RequestGrpc;
@@ -15,6 +15,7 @@ import com.lf.distrifs.core.grpc.client.ServerRequestHandler;
 import com.lf.distrifs.core.grpc.common.ServerListFactory;
 import com.lf.distrifs.core.grpc.request.*;
 import com.lf.distrifs.core.grpc.response.*;
+import com.lf.distrifs.util.CommonUtils;
 import com.lf.distrifs.util.GrpcUtils;
 import io.grpc.CompressorRegistry;
 import io.grpc.DecompressorRegistry;
@@ -98,6 +99,14 @@ public class GrpcClient {
         IpAndPort serverAddress = resolveAddress(serverListFactory.genNextServer());
         log.info("[{}]Try to connect server {}", name, serverAddress);
         GrpcConnection grpcConnection = connectTo(serverAddress);
+        if (grpcConnection == null) {
+            int maxTry = 3;
+            while (maxTry-- > 0 && grpcConnection == null) {
+                grpcConnection = connectTo(serverAddress);
+                log.warn("[{}]Try to connect server failed, retry after 5 seconds", name);
+                CommonUtils.threadSleep(5000L);
+            }
+        }
 
         if (grpcConnection != null) {
             log.info("[{}]Success to connect to server [{}], connectionId = {}", name, grpcConnection.getIpAndPort(), grpcConnection.getConnectionId());
@@ -430,7 +439,6 @@ public class GrpcClient {
                 .executor(grpcExecutor)
                 .compressorRegistry(CompressorRegistry.getDefaultInstance())
                 .decompressorRegistry(DecompressorRegistry.getDefaultInstance())
-                .keepAliveTime(60, TimeUnit.MINUTES)
                 .usePlaintext()
                 .build();
     }

@@ -1,4 +1,4 @@
-package com.lf.distrifs.core;
+package com.lf.distrifs.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
