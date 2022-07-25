@@ -24,9 +24,9 @@ public class RaftNodeManager {
 
     private Map<String, RaftNode> peers = new ConcurrentHashMap<>();
 
-    private AtomicLong localTerm = new AtomicLong(0L);
+    AtomicLong localTerm = new AtomicLong(0L);
 
-    private RaftNode leader;
+    RaftNode leader;
 
 
     @PostConstruct

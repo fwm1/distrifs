@@ -2,6 +2,8 @@ package com.lf.distrifs.core.raft;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.FutureCallback;
+import com.lf.distrifs.common.Constants;
+import com.lf.distrifs.common.JustForTest;
 import com.lf.distrifs.core.grpc.GrpcClient;
 import com.lf.distrifs.core.raft.response.RaftVoteResponse;
 import com.lf.distrifs.util.CommonUtils;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.lf.distrifs.util.CommonUtils.getAddress;
@@ -29,12 +32,28 @@ public class RaftService {
 
     private RaftRpcClient rpcClient = new RaftRpcClient();
 
+    private boolean initialized;
+
     @PostConstruct
     public void init() {
-        testVote();
+        log.info("[Raft] ======== Start initializing raft service ========");
+        initTerm();
+
     }
 
-    public void testVote() {
+    private void registerElectionTimer() {
+        RaftExecutors.RAFT_TIMER_EXECUTOR.scheduleAtFixedRate(new LeaderElectionTask(), 0, Constants.LEADER_ELECTION_TICK, TimeUnit.MILLISECONDS);
+
+    }
+
+    private void initTerm() {
+        raftNodeManager.localTerm.set(0L);
+        log.info("[Raft] Init local term -> 0");
+        initialized = true;
+
+    }
+
+    public void startVote() {
         RaftNode candidate = new RaftNode();
         candidate.status = RaftNode.NodeStatus.CANDIDATE;
         candidate.ip = NetUtils.LOCAL_IP;
@@ -77,5 +96,22 @@ public class RaftService {
 
         log.info("[Raft] {} vote {} as leader, term={}", getAddress(self.ip, self.port), remoteAddress, candidate.term.get());
         return self;
+    }
+
+
+    private class LeaderElectionTask implements Runnable {
+        @Override
+        public void run() {
+            RaftNode self = raftNodeManager.getSelf();
+            if ((self.leaderTimeout -= Constants.LEADER_ELECTION_TICK) > 0) {
+                return;
+            }
+
+            self.resetLeaderTimeout();
+            self.resetHeartbeatTimeout();
+
+            //开始投票
+            startVote();
+        }
     }
 }

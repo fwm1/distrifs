@@ -13,7 +13,6 @@ class RaftServiceTest {
 
     @Test
     public void testVote() {
-        raftService.testVote();
     }
 
 }

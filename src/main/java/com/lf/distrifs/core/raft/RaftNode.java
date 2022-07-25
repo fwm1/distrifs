@@ -32,6 +32,10 @@ public class RaftNode {
         leaderTimeout = Constants.LEADER_TIMEOUT_MS + CommonUtils.nextRandomLong(0, Constants.RANDOM_MS);
     }
 
+    public void resetHeartbeatTimeout() {
+        heartbeatTimeout = Constants.HEARTBEAT_INTERVAL_MS;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

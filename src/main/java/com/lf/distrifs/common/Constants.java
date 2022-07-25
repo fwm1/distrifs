@@ -13,4 +13,6 @@ public final class Constants {
     public static final long RANDOM_MS = TimeUnit.SECONDS.toMillis(5L);
 
     public static final long DEFAULT_RPC_TIMEOUT = TimeUnit.SECONDS.toMillis(5L);
+
+    public static final long LEADER_ELECTION_TICK = TimeUnit.MILLISECONDS.toMillis(500L);
 }
