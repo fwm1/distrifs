@@ -1,22 +1,28 @@
 package com.lf.distrifs.core.cluster;
 
-import com.google.common.base.Strings;
-import com.lf.distrifs.common.Constants;
+import com.google.common.base.Splitter;
 import com.lf.distrifs.util.NetUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 @Service
 @Slf4j
 public class MemberManager {
 
+    @Value("${distfs.servers:}")
+    private String serverStr;
 
-    private ConcurrentSkipListMap<String, Member> membersExcludeSelf = new ConcurrentSkipListMap<>();
+    private ConcurrentSkipListMap<String, Member> members = new ConcurrentSkipListMap<>();
     private Member self;
 
 
@@ -27,27 +33,27 @@ public class MemberManager {
         String ip = NetUtils.LOCAL_IP;
         self = new Member(ip, port);
         self.setNodeStatus(NodeStatus.UP);
-        log.info("Member manager init finished");
 
-        mock();
-    }
+        List<String> peerEntryPoints = Splitter.on(",").splitToList(serverStr);
+        peerEntryPoints.forEach(entryPoint -> {
+            Member peer = new Member(entryPoint);
+            peer.setNodeStatus(NodeStatus.UP);
+            members.putIfAbsent(entryPoint, peer);
+        });
 
-    public void mock() {
-        String serverIp = System.getProperty("distrifs.target.server.ip");
-        String serverPort = System.getProperty("distrifs.target.server.port");
-        if (!Strings.isNullOrEmpty(serverPort) && !Strings.isNullOrEmpty(serverIp)) {
-            membersExcludeSelf.put(serverIp + ":" + serverPort, new Member(serverIp, Integer.parseInt(serverPort)));
-        }
+        checkArgument(members.containsKey(self.entryPoint), "Static entryPoints not contains self, self={}, peers={}", self.entryPoint, peerEntryPoints);
+
+        log.info("Member manager init finished, size={}, self={}, peers={}", members.size(), self, members);
     }
 
 
     public Collection<Member> allMembers() {
-        HashSet<Member> set = new HashSet<>(membersExcludeSelf.values());
-        set.add(self);
-        return set;
+        return new HashSet<>(members.values());
     }
 
     public Collection<Member> allMembersExcludeSelf() {
-        return new HashSet<>(membersExcludeSelf.values());
+        HashMap<String, Member> tmp = new HashMap<>(this.members);
+        tmp.remove(self.entryPoint);
+        return tmp.values();
     }
 }

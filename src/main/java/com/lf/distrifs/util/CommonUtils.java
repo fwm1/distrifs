@@ -19,7 +19,7 @@ public class CommonUtils {
         return (long) (start + (period * RANDOM.nextDouble()));
     }
 
-    public static String getAddress(String ip, int port) {
+    public static String toEntryPoint(String ip, int port) {
         checkArgument(!Strings.isNullOrEmpty(ip) && port > 0, String.format("Illegal ip or port, ip=%s, port=%s", ip, port));
         return ip + ":" + port;
     }

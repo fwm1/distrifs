@@ -101,7 +101,7 @@ public class GrpcClient {
         GrpcConnection grpcConnection = connectTo(serverAddress);
         if (grpcConnection == null) {
             int maxTry = 3;
-            while (maxTry-- > 0 && grpcConnection == null) {
+            while (grpcConnection == null) {
                 grpcConnection = connectTo(serverAddress);
                 log.warn("[{}]Try to connect server failed, retry after 5 seconds", name);
                 CommonUtils.threadSleep(5000L);
@@ -153,7 +153,7 @@ public class GrpcClient {
             this.grpcConnection.asyncRequest(request, callback);
             return;
         } catch (Exception e) {
-            log.warn("[{}]Send async request fail, request = {}, errorMsg = {}", name, request, e.getMessage());
+            log.warn("[{}]Send async request fail, request = {}, errorMsg = {}", name, request, e.getMessage(), e);
         }
         if (clientStatus.compareAndSet(RpcClientStatus.RUNNING, RpcClientStatus.UNHEALTHY)) {
             // todo async switch server

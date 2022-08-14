@@ -16,6 +16,7 @@
         <grpc.version>1.42.0</grpc.version>
         <disruptor.version>3.4.4</disruptor.version>
         <jackson.version>2.11.3</jackson.version>
+        <common.collection.version>4.4</common.collection.version>
     </properties>
 
     <dependencies>
@@ -89,6 +90,13 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+
+        <!--apache-common-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>${common.collection.version}</version>
         </dependency>
     </dependencies>
 

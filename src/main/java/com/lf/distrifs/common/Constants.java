@@ -15,4 +15,6 @@ public final class Constants {
     public static final long DEFAULT_RPC_TIMEOUT = TimeUnit.SECONDS.toMillis(5L);
 
     public static final long LEADER_ELECTION_TICK = TimeUnit.MILLISECONDS.toMillis(500L);
+
+    public static final long HEARTBEAT_TICK = TimeUnit.MILLISECONDS.toMillis(2000L);
 }

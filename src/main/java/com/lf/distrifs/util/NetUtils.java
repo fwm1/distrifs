@@ -28,6 +28,10 @@ public class NetUtils {
     }
 
     private static String getIp() {
+        String fixedIp = System.getProperty("distrifs.local.ip");
+        if (!Strings.isNullOrEmpty(fixedIp)) {
+            return fixedIp;
+        }
         InetAddress inetAddress = findFirstNonLoopbackAddress();
         if (inetAddress == null) {
             return "127.0.0.1";
