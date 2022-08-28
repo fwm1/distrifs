@@ -3,6 +3,9 @@ package com.lf.distrifs.core.raft;
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.FutureCallback;
 import com.lf.distrifs.common.Constants;
+import com.lf.distrifs.common.Data;
+import com.lf.distrifs.core.fs.FileRecord;
+import com.lf.distrifs.core.fs.FileStore;
 import com.lf.distrifs.util.NetUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
@@ -10,9 +13,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.lf.distrifs.util.CommonUtils.toEntryPoint;
 
@@ -25,6 +29,9 @@ public class RaftService {
 
     @Resource
     private RaftClientService raftClientService;
+
+    @Resource
+    private FileStore fileStore;
 
     private boolean initialized;
 
@@ -161,20 +168,29 @@ public class RaftService {
             self.resetLeaderTimeout();
 
             List<RaftNode> peersExcludeSelf = raftNodeManager.getPeersExcludeSelf();
+            int peerSize = peersExcludeSelf.size();
+            final AtomicInteger successTimes = new AtomicInteger(0);
 
-            peersExcludeSelf.forEach(peer -> raftClientService.sendHeartbeatRequest(self, peer, new FutureCallback<Object>() {
-                @Override
-                public void onSuccess(@NullableDecl Object result) {
-                    log.info("[Raft] Received raft heartbeat response in callback, result={}", result);
-                    //todo raft heartbeat
+            LinkedHashMap<String, Data<FileRecord>> appendingLog = fileStore.getAppendingLog();
+            peersExcludeSelf.forEach(peer -> {
+                raftClientService.sendHeartbeatRequest(self, peer, appendingLog,
+                        new FutureCallback<Object>() {
+                            @Override
+                            public void onSuccess(@NullableDecl Object result) {
+                                log.info("[Raft] Received raft heartbeat response in callback, result={}", result);
+                                //todo raft heartbeat with data
+                                if (successTimes.incrementAndGet() > peerSize / 2) {
+                                    log.info("[Raft] Raft heartbeat received over half of peers");
+                                    fileStore.onSync(appendingLog);
+                                }
+                            }
 
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("[Raft] Raft heartbeat request failed", t);
-                }
-            }));
+                            @Override
+                            public void onFailure(Throwable t) {
+                                log.error("[Raft] Raft heartbeat request failed", t);
+                            }
+                        });
+            });
         }
     }
 }

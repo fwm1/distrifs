@@ -17,10 +17,11 @@ public class Data<T extends Record> implements Serializable {
 
     AtomicLong timeStamp = new AtomicLong(0L);
 
-    public static <T extends Record> Data create(String key, T value) {
-        Data data = new Data();
+    public static <T extends Record> Data<T> create(String key, T value) {
+        Data<T> data = new Data<>();
         data.key = key;
         data.value = value;
+        data.timeStamp.set(System.currentTimeMillis());
         return data;
     }
 }

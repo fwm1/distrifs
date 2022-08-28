@@ -88,7 +88,7 @@ public class RaftClientService {
         }
     }
 
-    public void sendHeartbeatRequest(RaftNode from, RaftNode target, FutureCallback<Object> callback) {
+    public <T> void sendHeartbeatRequest(RaftNode from, RaftNode target, T data, FutureCallback<Object> callback) {
         if (!isInited()) {
             log.warn("[Raft] Raft client service not init, send heartbeat request failed");
             return;
@@ -100,7 +100,7 @@ public class RaftClientService {
             return;
         }
         try {
-            grpcClient.asyncRequest(new RaftHeartbeatRequest(from), new RaftHeartbeatRequestCallback(callback));
+            grpcClient.asyncRequest(new RaftHeartbeatRequest<>(from, data), new RaftHeartbeatRequestCallback(callback));
         } catch (Throwable e) {
             log.error("[Raft] Send heartbeat request failed because of exception", e);
         }

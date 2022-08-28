@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RaftHeartbeatRequest extends Request {
+public class RaftHeartbeatRequest<T> extends Request {
 
     //发起心跳的节点，必定是leader
     RaftNode node;
+
+    T data;
 }
