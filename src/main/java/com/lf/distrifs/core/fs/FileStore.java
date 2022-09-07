@@ -1,14 +1,16 @@
 package com.lf.distrifs.core.fs;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.lf.distrifs.common.Data;
-import com.sun.org.apache.bcel.internal.generic.IXOR;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -22,7 +24,7 @@ public class FileStore {
             int idx = 1;
             while (true) {
                 String path = "file_" + idx++;
-                append(path, Data.create(path, new FileRecord(new File(path))));
+                append(path, Data.create(path, new FileRecord(path)));
                 try {
                     Thread.sleep(1000L);
                 } catch (Throwable ignored) {
@@ -81,7 +83,20 @@ public class FileStore {
 
 
     private void doWrite(FileRecord fileRecord) {
-        // todo write file
+        String path = fileRecord.getPath();
+        if (!Strings.isNullOrEmpty(path)) {
+            File file = new File(path);
+            if (file.exists()) {
+                log.warn("[FileStore] Overwrite file={}", path);
+            }
+            try {
+                Files.write(fileRecord.content, file);
+            } catch (IOException e) {
+                log.error("[FileStore] Failed to write file, path={}", path, e);
+            }
+        } else {
+            log.warn("[FileStore] DoWrite file failed, path is empty, {}", fileRecord);
+        }
     }
 
 
